@@ -46,12 +46,13 @@ impl Plugin for ExampleClientPlugin {
                 .chain(),
         );
         app.add_systems(
-            Update,
+            PreUpdate,
             (
                 handle_new_floor,
                 handle_new_block,
                 handle_new_character,
-            ),
+            ).after(PredictionSet::Sync)
+                .before(PredictionSet::CheckRollback),
         );
     }
 }

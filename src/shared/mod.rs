@@ -72,6 +72,9 @@ impl Plugin for SharedPlugin {
         );
         // app.insert_resource(Gravity(Vec3::ZERO));
 
+        // check the component values right after 'prepare-rollback', which should reset all component
+        // values to be equal to the server
+        app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
         app.add_systems(
             FixedPostUpdate,
             after_physics_log.after(PhysicsSet::StepSimulation),
@@ -87,6 +90,7 @@ impl Plugin for SharedPlugin {
         );
 
         // app.add_plugins(QuantizationPlugin::new(FixedPostUpdate));
+
 
         app.add_systems(FixedPostUpdate, after_physics_log_player);
         app.add_systems(PostProcessCollisions, correct_small_differences);

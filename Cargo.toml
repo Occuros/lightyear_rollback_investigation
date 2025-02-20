@@ -38,7 +38,7 @@ gui = [
 
 [dependencies]
 bevy = {version = "0.15"}
-lightyear = { git = "https://github.com/cBournhonesque/lightyear.git", features = [
+lightyear = { path = "../lightyear/lightyear", features = [
   "leafwing",
   "avian3d",
   "websocket",
