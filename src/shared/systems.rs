@@ -181,7 +181,7 @@ pub(crate) fn after_physics_log(
             &Rotation,
             &LinearVelocity,
             &AngularVelocity,
-            &Correction<Position>,
+            Option<&Correction<Position>>,
         ),
         (
             Without<Confirmed>,
@@ -199,7 +199,7 @@ pub(crate) fn after_physics_log(
         |r| r.is_rollback(),
     );
     for (entity, position, rotation, lv, av, correction) in blocks.iter() {
-        info!(
+        warn!(
             ?is_rollback,
             ?tick,
             ?entity,
