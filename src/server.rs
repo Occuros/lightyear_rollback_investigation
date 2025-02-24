@@ -71,21 +71,21 @@ fn handle_character_actions(
 fn init(mut commands: Commands) {
     commands.start_server();
 
-    commands.spawn(
-        (
-            Name::new("Floor"),
-            FloorPhysicsBundle::default(),
-            FloorMarker,
-            Position::new(Vec3::ZERO),
-            // Floors don't need to be predicted since they will never move.
-            // We put it in the same replication group to avoid having the players be replicated before the floor
-            // and falling infinitely
-            Replicate {
-                group: REPLICATION_GROUP,
-                ..default()
-            },
-        ),
-    );
+    // commands.spawn(
+    //     (
+    //         Name::new("Floor"),
+    //         FloorPhysicsBundle::default(),
+    //         FloorMarker,
+    //         Position::new(Vec3::ZERO),
+    //         // Floors don't need to be predicted since they will never move.
+    //         // We put it in the same replication group to avoid having the players be replicated before the floor
+    //         // and falling infinitely
+    //         Replicate {
+    //             group: REPLICATION_GROUP,
+    //             ..default()
+    //         },
+    //     ),
+    // );
 
     // Blocks need to be predicted because their position, rotation, velocity
     // may change.

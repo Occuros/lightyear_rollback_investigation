@@ -6,7 +6,7 @@ use lightyear::client::interpolation::plugin::InterpolationPlugin;
 use lightyear::inputs::leafwing::input_buffer::InputBuffer;
 use server::ControlledEntities;
 use std::hash::{Hash, Hasher};
-
+use avian3d::dynamics::solver::SolverConfig;
 use avian3d::prelude::*;
 use bevy::ecs::schedule::ScheduleLabel;
 use bevy::prelude::TransformSystem::TransformPropagate;
@@ -61,15 +61,26 @@ impl Plugin for SharedPlugin {
             ..default()
         });
         // disable sleeping
-        app.insert_resource(SleepingThreshold {
-            linear: -0.01,
-            angular: -0.01,
-        });
-        // app.insert_resource(Gravity(Vec3::ZERO));
+
+        app.insert_resource(
+            SleepingThreshold {
+                linear: -0.01,
+                angular: -0.01,
+            },
+        );
+
+        // NOTE: does not help
+        // app.insert_resource(SolverConfig {
+        //     warm_start_coefficient: 0.0,
+        //     ..default()
+        // });
+        app.insert_resource(Gravity(Vec3::ZERO));
 
         // check the component values right after 'prepare-rollback', which should reset all component
         // values to be equal to the server
-        // app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
+        app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
+        app.add_systems(FixedUpdate, apply_force_to_cube_system);
+
         app.add_systems(
             PreUpdate,
             after_physics_log

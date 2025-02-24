@@ -153,6 +153,21 @@ pub(crate) fn after_physics_log_player(
     // }
 }
 
+pub fn apply_force_to_cube_system(
+    mut block_query: Query<(&Transform, &mut LinearVelocity), (With<BlockMarker>, Without<Confirmed>)>,
+) {
+    for (transform, mut velocity) in block_query.iter_mut() {
+        if transform.translation.y > 5.0 {
+            velocity.y = -0.5;
+        } else if transform.translation.y < 2.0 {
+            velocity.y = 0.5;
+        }
+    }
+}
+
+
+
+
 pub(crate) fn after_physics_log(
     tick_manager: Res<TickManager>,
     rollback: Option<Res<Rollback>>,
@@ -298,14 +313,4 @@ pub fn correct_small_differences(mut collisions: ResMut<Collisions>) {
     // })
 }
 
-pub fn apply_force_to_cube_system(
-    mut block_query: Query<(&Transform, &mut LinearVelocity), (With<BlockMarker>, Without<Confirmed>)>,
-) {
-    for (transform, mut velocity) in block_query.iter_mut() {
-        if transform.translation.y > 5.0 {
-            velocity.y = -0.5;
-        } else if transform.translation.y < 2.0 {
-            velocity.y = 0.5;
-        }
-    }
-}
+
