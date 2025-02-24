@@ -70,12 +70,12 @@ impl Plugin for SharedPlugin {
         // check the component values right after 'prepare-rollback', which should reset all component
         // values to be equal to the server
         // app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
-        app.add_systems(
-            PreUpdate,
-            after_physics_log
-                .after(PredictionSet::PrepareRollback)
-                .after(PredictionSet::Rollback), // .run_if(is_in_rollback),
-        );
+        // app.add_systems(
+        //     PreUpdate,
+        //     after_physics_log
+        //         .after(PredictionSet::PrepareRollback)
+        //         .after(PredictionSet::Rollback), // .run_if(is_in_rollback),
+        // );
 
         // app.add_systems(
         //     FixedPostUpdate,
@@ -93,8 +93,8 @@ impl Plugin for SharedPlugin {
 
         // app.add_plugins(QuantizationPlugin::new(FixedPostUpdate));
 
-        app.add_systems(FixedPostUpdate, after_physics_log_player);
-        app.add_systems(PostProcessCollisions, correct_small_differences);
+        // app.add_systems(FixedPostUpdate, after_physics_log_player);
+        // app.add_systems(PostProcessCollisions, correct_small_differences);
         app.add_systems(FixedPreUpdate, apply_force_to_cube_system);
     }
 }

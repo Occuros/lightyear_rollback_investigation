@@ -96,29 +96,29 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<FloorMarker>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<BlockMarker>(ChannelDirection::ServerToClient)
+        app.register_component::<BlockMarker>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<Bullet>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Once);
 
         // Fully replicated, but not visual, so no need for lerp/corrections:
-        app.register_component::<LinearVelocity>(ChannelDirection::ServerToClient)
+        app.register_component::<LinearVelocity>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<AngularVelocity>(ChannelDirection::ServerToClient)
+        app.register_component::<AngularVelocity>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<ExternalForce>(ChannelDirection::ServerToClient)
+        app.register_component::<ExternalForce>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<ExternalImpulse>(ChannelDirection::ServerToClient)
+        app.register_component::<ExternalImpulse>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<Transform>(ChannelDirection::ServerToClient)
+        app.register_component::<Transform>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<ComputedMass>(ChannelDirection::ServerToClient)
+        app.register_component::<ComputedMass>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
         // app.register_component::<Weapon>(ChannelDirection::ServerToClient)
@@ -132,7 +132,7 @@ impl Plugin for ProtocolPlugin {
         //
         // They also set `interpolation_fn` which is used by the VisualInterpolationPlugin to smooth
         // out rendering between fixedupdate ticks.
-        app.register_component::<Position>(ChannelDirection::ServerToClient)
+        app.register_component::<Position>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full)
             .add_interpolation_fn(position::lerp)
             .add_correction_fn(position::lerp);
@@ -152,7 +152,7 @@ impl Plugin for ProtocolPlugin {
             //     },
             // );
 
-        app.register_component::<Rotation>(ChannelDirection::ServerToClient)
+        app.register_component::<Rotation>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full)
             .add_interpolation_fn(rotation::lerp)
             .add_correction_fn(rotation::lerp);

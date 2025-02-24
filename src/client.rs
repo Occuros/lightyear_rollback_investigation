@@ -26,6 +26,9 @@ impl Plugin for ExampleClientPlugin {
         app.add_plugins(ThirdPersonCameraPlugin);
         app.configure_sets(PostUpdate, CameraSyncSet.after(PhysicsSet::Sync));
 
+        app.add_systems(PreUpdate, handle_client_connection_system.after(MainSet::Receive));
+
+
         app.add_systems(Startup, connect_to_server);
         app.add_systems(
             FixedUpdate,
@@ -43,6 +46,36 @@ impl Plugin for ExampleClientPlugin {
             (handle_new_floor, handle_new_block, handle_new_character)
                 .after(PredictionSet::Sync)
                 .before(PredictionSet::CheckRollback),
+        );
+    }
+}
+
+
+/// Listen for events to know when the client is connected;
+/// - spawn a text entity to display the client id
+/// - spawn a client-owned cursor entity that will be replicated to the server
+pub(crate) fn handle_client_connection_system(
+    mut commands: Commands,
+    mut connection_event: EventReader<ConnectEvent>,
+) {
+    for event in connection_event.read() {
+        let client_id = event.client_id();
+        info!("Spawning local box");
+        // spawn a local cursor which will be replicated to other clients, but remain client-authoritative.
+        commands.spawn(
+            (
+                Name::new("Block"),
+                BlockPhysicsBundle::default(),
+                BlockMarker,
+                Position::new(
+                    Vec3::new(
+                        -1.0, 3.0, 0.0,
+                    ),
+                ),
+                // LinearVelocity(Vec3::Y * 0.5),
+                GravityScale(0.0),
+                lightyear::prelude::server::Replicate::default(),
+            ),
         );
     }
 }

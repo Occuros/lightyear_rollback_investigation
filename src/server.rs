@@ -17,6 +17,7 @@ use lightyear::prelude::client::{Confirmed, Predicted};
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
 use lightyear::server::input::leafwing::InputSystemSet;
+use lightyear::shared::replication::components::InitialReplicated;
 use lightyear::shared::tick_manager;
 
 use crate::protocol::*;
@@ -46,6 +47,11 @@ impl Plugin for ExampleServerPlugin {
         app.add_systems(
             Update,
             handle_connections,
+        );
+
+        app.add_systems(
+            PreUpdate,
+            replicate_box_system.in_set(ServerReplicationSet::ClientReplication),
         );
     }
 }
@@ -112,21 +118,23 @@ fn init(mut commands: Commands) {
     //         block_replicate_component.clone(),
     //     ),
     // );
-    commands.spawn(
-        (
-            Name::new("Block"),
-            BlockPhysicsBundle::default(),
-            BlockMarker,
-            Position::new(
-                Vec3::new(
-                    -1.0, 3.0, 0.0,
-                ),
-            ),
-            LinearVelocity(Vec3::Y * 0.5),
-            GravityScale(0.0),
-            block_replicate_component.clone(),
-        ),
-    );
+
+
+    // commands.spawn(
+    //     (
+    //         Name::new("Block"),
+    //         BlockPhysicsBundle::default(),
+    //         BlockMarker,
+    //         Position::new(
+    //             Vec3::new(
+    //                 -1.0, 3.0, 0.0,
+    //             ),
+    //         ),
+    //         LinearVelocity(Vec3::Y * 0.5),
+    //         GravityScale(0.0),
+    //         block_replicate_component.clone(),
+    //     ),
+    // );
 
     // commands.spawn(
     //     (
@@ -212,6 +220,8 @@ pub(crate) fn handle_connections(
         let x = 2.0 * angle.cos();
         let z = 2.0 * angle.sin();
 
+
+
         // Spawn the character with ActionState. The client will add their own
         // InputMap.
         // let character = commands
@@ -241,5 +251,40 @@ pub(crate) fn handle_connections(
 
         // info!("Created entity {character:?} for client {client_id:?}");
         // num_characters += 1;
+    }
+}
+
+
+pub(crate) fn replicate_box_system(
+    mut commands: Commands,
+    replicated_block: Query<
+        (Entity, &InitialReplicated),
+        (With<BlockMarker>, Added<InitialReplicated>),
+    >,
+) {
+    for (entity, replicated) in replicated_block.iter() {
+        let client_id = replicated.client_id();
+        info!("received block spawn event from client: {client_id:?}");
+        // for all cursors we have received, add a Replicate component so that we can start replicating it
+        // to other clients
+        if let Some(mut e) = commands.get_entity(entity) {
+            e.insert(Replicate {
+                target: ReplicationTarget {
+                    // do not replicate back to the client that owns the cursor!
+                    target: NetworkTarget::AllExceptSingle(client_id),
+                },
+                authority: AuthorityPeer::Client(client_id),
+                sync: SyncTarget {
+                    // we want the other clients to apply interpolation for the cursor
+                    interpolation: NetworkTarget::AllExceptSingle(client_id),
+                    ..default()
+                },
+                controlled_by: ControlledBy {
+                    target: NetworkTarget::Single(client_id),
+                    ..default()
+                },
+                ..default()
+            });
+        }
     }
 }
