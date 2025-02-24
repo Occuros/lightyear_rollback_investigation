@@ -43,10 +43,7 @@ pub fn player_firing(
             &ActionState<CharacterAction>,
             Has<Controlled>,
         ),
-        Or<(
-            With<Predicted>,
-            With<ReplicationTarget>,
-        )>,
+        Or<(With<Predicted>, With<ReplicationTarget>)>,
     >,
     tick_manager: Res<TickManager>,
     identity: NetworkIdentity,
@@ -65,7 +62,6 @@ pub fn player_firing(
         let fired_since = current_tick - weapon.last_fire_tick;
 
         if fired_since.abs() <= weapon.cooldown as i16 {
-
             // cooldown period - can't fire.
             if weapon.last_fire_tick == current_tick {
                 // logging because debugging latency edge conditions where
@@ -91,25 +87,19 @@ pub fn player_firing(
 
         let bullet_size = 0.1;
         let bullet_entity = commands
-            .spawn(
-                (
-                    // Name::new("Bullet"),
-                    Bullet {
-                        radius: bullet_size,
-                    },
-                    Position::new(bullet_origin),
-                    // LinearVelocity(
-                    //     (-player_transform.forward().as_vec3() + player_transform.up().as_vec3()).normalize() * 10.0,
-                    // ),
-                    LinearVelocity(
-                        (-player_transform.forward().as_vec3()).normalize() * 10.0,
-                    ),
-                    Collider::sphere(bullet_size),
-                    // GravityScale(0.0),
-                    // Replicate::default(),
-                    prespawn,
-                ),
-            )
+            .spawn((
+                // Name::new("Bullet"),
+                Bullet { radius: bullet_size },
+                Position::new(bullet_origin),
+                // LinearVelocity(
+                //     (-player_transform.forward().as_vec3() + player_transform.up().as_vec3()).normalize() * 10.0,
+                // ),
+                LinearVelocity((-player_transform.forward().as_vec3()).normalize() * 10.0),
+                Collider::sphere(bullet_size),
+                // GravityScale(0.0),
+                // Replicate::default(),
+                prespawn,
+            ))
             .id();
 
         if identity.is_server() {
@@ -139,36 +129,29 @@ pub(crate) fn after_physics_log_player(
             &AngularVelocity,
             // &Correction<Position>
         ),
-        (
-            With<Player>,
-        ),
+        (With<Player>,),
     >,
 ) {
-    let tick = rollback.as_ref().map_or(
-        tick_manager.tick(),
-        |r| tick_manager.tick_or_rollback_tick(r.as_ref()),
-    );
+    let tick = rollback
+        .as_ref()
+        .map_or(tick_manager.tick(), |r| tick_manager.tick_or_rollback_tick(r.as_ref()));
     // info!(?tick, ?collisions, "collisions");
-    let is_rollback = rollback.map_or(
-        false,
-        |r| r.is_rollback(),
-    );
+    let is_rollback = rollback.map_or(false, |r| r.is_rollback());
 
     // info!("tick: {:?} collisions: {:?}", tick, collisions);
     // for (entity, position, rotation, lv, av, correction) in blocks.iter() {
-        // info!(
-        //     ?is_rollback,
-        //     ?tick,
-        //     ?entity,
-        //     ?position,
-        //     ?rotation,
-        //     ?lv,
-        //     ?av,
-        //     "Block after physics update"
-        // );
+    // info!(
+    //     ?is_rollback,
+    //     ?tick,
+    //     ?entity,
+    //     ?position,
+    //     ?rotation,
+    //     ?lv,
+    //     ?av,
+    //     "Block after physics update"
+    // );
     // }
 }
-
 
 pub(crate) fn after_physics_log(
     tick_manager: Res<TickManager>,
@@ -183,32 +166,57 @@ pub(crate) fn after_physics_log(
             &AngularVelocity,
             Option<&Correction<Position>>,
         ),
-        (
-            Without<Confirmed>,
-            With<BlockMarker>,
-        ),
+        (Without<Confirmed>, With<BlockMarker>),
     >,
+
+    confirmed_blocks: Query<
+        (
+            Entity,
+            &Position,
+            &Rotation,
+            &LinearVelocity,
+            &AngularVelocity,
+            &Confirmed,
+        ),
+        (With<BlockMarker>),
+    >,
+    identity: NetworkIdentity,
 ) {
-    let tick = rollback.as_ref().map_or(
-        tick_manager.tick(),
-        |r| tick_manager.tick_or_rollback_tick(r.as_ref()),
-    );
+    let tick = rollback
+        .as_ref()
+        .map_or(tick_manager.tick(), |r| tick_manager.tick_or_rollback_tick(r.as_ref()));
     // info!(?tick, ?collisions, "collisions");
-    let is_rollback = rollback.map_or(
-        false,
-        |r| r.is_rollback(),
-    );
+    let is_rollback = rollback.map_or(false, |r| r.is_rollback());
+    let network_role = if identity.is_server() { "server" } else { "client" };
+
+    for (entity, position, rotation, lv, av, confirmed) in confirmed_blocks.iter() {
+        warn!(
+            network_role,
+            // ?is_rollback,
+            ?tick,
+            // ?entity,
+            ?position,
+            ?confirmed.tick,
+            // ?rotation,
+            // ?lv,
+            // ?av,
+            // ?correction,
+            "Block confirmed",
+        );
+    }
+
     for (entity, position, rotation, lv, av, correction) in blocks.iter() {
         warn!(
-            ?is_rollback,
+            network_role,
+            // ?is_rollback,
             ?tick,
-            ?entity,
+            // ?entity,
             ?position,
-            ?rotation,
-            ?lv,
-            ?av,
-            ?correction,
-            "Block after physics update"
+            // ?rotation,
+            // ?lv,
+            // ?av,
+            // ?correction,
+            "Block predicted",
         );
     }
 }
@@ -228,12 +236,8 @@ pub fn apply_character_action(
 
     // Handle jumping.
     if action_state.pressed(&CharacterAction::Jump) {
-        let ray_cast_origin = character.position.0
-            + Vec3::new(
-                0.0,
-                -CHARACTER_CAPSULE_HEIGHT / 2.0 - CHARACTER_CAPSULE_RADIUS,
-                0.0,
-            );
+        let ray_cast_origin =
+            character.position.0 + Vec3::new(0.0, -CHARACTER_CAPSULE_HEIGHT / 2.0 - CHARACTER_CAPSULE_RADIUS, 0.0);
 
         // Only jump if the character is on the ground.
         //
@@ -249,35 +253,21 @@ pub fn apply_character_action(
             )
             .is_some()
         {
-            character.external_impulse.apply_impulse(
-                Vec3::new(
-                    0.0, 5.0, 0.0,
-                ),
-            );
+            character.external_impulse.apply_impulse(Vec3::new(0.0, 5.0, 0.0));
         }
     }
 
     // Handle moving.
     let move_dir = action_state.axis_pair(&CharacterAction::Move).clamp_length_max(1.0);
-    let move_dir = Vec3::new(
-        -move_dir.x,
-        0.0,
-        move_dir.y,
-    );
+    let move_dir = Vec3::new(-move_dir.x, 0.0, move_dir.y);
 
     // Linear velocity of the character ignoring vertical speed.
-    let ground_linear_velocity = Vec3::new(
-        character.linear_velocity.x,
-        0.0,
-        character.linear_velocity.z,
-    );
+    let ground_linear_velocity = Vec3::new(character.linear_velocity.x, 0.0, character.linear_velocity.z);
 
     let desired_ground_linear_velocity = move_dir * MAX_SPEED;
 
-    let new_ground_linear_velocity = ground_linear_velocity.move_towards(
-        desired_ground_linear_velocity,
-        max_velocity_delta_per_tick,
-    );
+    let new_ground_linear_velocity =
+        ground_linear_velocity.move_towards(desired_ground_linear_velocity, max_velocity_delta_per_tick);
 
     // Acceleration required to change the linear velocity from
     // `ground_linear_velocity` to `new_ground_linear_velocity` in the duration
@@ -297,7 +287,6 @@ pub fn apply_character_action(
         .apply_force(required_acceleration * character.mass.value());
 }
 
-
 pub fn correct_small_differences(mut collisions: ResMut<Collisions>) {
     // collisions.retain(|collision| {
     //     if collision.total_normal_impulse < 0.1 {
@@ -307,4 +296,16 @@ pub fn correct_small_differences(mut collisions: ResMut<Collisions>) {
     //         true
     //     }
     // })
+}
+
+pub fn apply_force_to_cube_system(
+    mut block_query: Query<(&Transform, &mut LinearVelocity), (With<BlockMarker>, Without<Confirmed>)>,
+) {
+    for (transform, mut velocity) in block_query.iter_mut() {
+        if transform.translation.y > 5.0 {
+            velocity.y = -0.5;
+        } else if transform.translation.y < 2.0 {
+            velocity.y = 0.5;
+        }
+    }
 }

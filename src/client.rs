@@ -23,17 +23,10 @@ pub struct ExampleClientPlugin;
 
 impl Plugin for ExampleClientPlugin {
     fn build(&self, app: &mut App) {
-
         app.add_plugins(ThirdPersonCameraPlugin);
-        app.configure_sets(
-            PostUpdate,
-            CameraSyncSet.after(PhysicsSet::Sync),
-        );
+        app.configure_sets(PostUpdate, CameraSyncSet.after(PhysicsSet::Sync));
 
-        app.add_systems(
-            Startup,
-            connect_to_server,
-        );
+        app.add_systems(Startup, connect_to_server);
         app.add_systems(
             FixedUpdate,
             (
@@ -47,11 +40,8 @@ impl Plugin for ExampleClientPlugin {
         );
         app.add_systems(
             PreUpdate,
-            (
-                handle_new_floor,
-                handle_new_block,
-                handle_new_character,
-            ).after(PredictionSet::Sync)
+            (handle_new_floor, handle_new_block, handle_new_character)
+                .after(PredictionSet::Sync)
                 .before(PredictionSet::CheckRollback),
         );
     }
@@ -82,33 +72,18 @@ fn handle_character_actions(
     for (action_state, input_buffer, mut character) in &mut query {
         // Use the current character action if it is.
         if input_buffer.get(tick).is_some() {
-            apply_character_action(
-                &time,
-                &spatial_query,
-                action_state,
-                &mut character,
-            );
+            apply_character_action(&time, &spatial_query, action_state, &mut character);
             continue;
         }
 
         // If the current character action is not real then use the last real
         // character action.
         if let Some((_, prev_action_state)) = input_buffer.get_last_with_tick() {
-            apply_character_action(
-                &time,
-                &spatial_query,
-                prev_action_state,
-                &mut character,
-            );
+            apply_character_action(&time, &spatial_query, prev_action_state, &mut character);
         } else {
             // No inputs are in the buffer yet. This can happen during initial
             // connection. Apply the default input (i.e. nothing pressed).
-            apply_character_action(
-                &time,
-                &spatial_query,
-                action_state,
-                &mut character,
-            );
+            apply_character_action(&time, &spatial_query, action_state, &mut character);
         }
     }
 }
@@ -122,60 +97,24 @@ pub(crate) fn connect_to_server(mut commands: Commands) {
 fn handle_new_character(
     connection: Res<ClientConnection>,
     mut commands: Commands,
-    mut character_query: Query<
-        (
-            Entity,
-            &ColorComponent,
-            Has<Controlled>,
-        ),
-        (
-            Added<Predicted>,
-            With<CharacterMarker>,
-        ),
-    >,
+    mut character_query: Query<(Entity, &ColorComponent, Has<Controlled>), (Added<Predicted>, With<CharacterMarker>)>,
 ) {
     for (entity, color, is_controlled) in &mut character_query {
         if is_controlled {
             info!("Adding InputMap to controlled and predicted entity {entity:?}");
 
-            let input_map = InputMap::new(
-                [(
-                    CharacterAction::Jump,
-                    KeyCode::Space,
-                )],
-            )
-            .with(
-                CharacterAction::Jump,
-                GamepadButton::South,
-            )
-            .with_dual_axis(
-                CharacterAction::Move,
-                GamepadStick::LEFT,
-            )
-            .with_dual_axis(
-                CharacterAction::Move,
-                VirtualDPad::wasd(),
-            )
-            .with(
-                CharacterAction::Shoot,
-                MouseButton::Right,
-            );
+            let input_map = InputMap::new([(CharacterAction::Jump, KeyCode::Space)])
+                .with(CharacterAction::Jump, GamepadButton::South)
+                .with_dual_axis(CharacterAction::Move, GamepadStick::LEFT)
+                .with_dual_axis(CharacterAction::Move, VirtualDPad::wasd())
+                .with(CharacterAction::Shoot, MouseButton::Right);
 
-            commands.entity(entity).insert(
-                (
-                    input_map,
-                    ThirdPersonCameraTarget,
-                ),
-            );
+            commands.entity(entity).insert((input_map, ThirdPersonCameraTarget));
         } else {
             info!("Remote character replicated to us: {entity:?}");
         }
         let client_id = connection.id();
-        info!(
-            ?entity,
-            ?client_id,
-            "Adding physics to character"
-        );
+        info!(?entity, ?client_id, "Adding physics to character");
         commands.entity(entity).insert(CharacterPhysicsBundle::default());
     }
 }
@@ -186,19 +125,10 @@ fn handle_new_character(
 fn handle_new_floor(
     connection: Res<ClientConnection>,
     mut commands: Commands,
-    character_query: Query<
-        Entity,
-        (
-            Added<Replicated>,
-            With<FloorMarker>,
-        ),
-    >,
+    character_query: Query<Entity, (Added<Replicated>, With<FloorMarker>)>,
 ) {
     for entity in &character_query {
-        info!(
-            ?entity,
-            "Adding physics to floor"
-        );
+        info!(?entity, "Adding physics to floor");
         commands.entity(entity).insert(FloorPhysicsBundle::default());
     }
 }
@@ -207,19 +137,13 @@ fn handle_new_floor(
 fn handle_new_block(
     connection: Res<ClientConnection>,
     mut commands: Commands,
-    character_query: Query<
-        Entity,
-        (
-            Added<Predicted>,
-            With<BlockMarker>,
-        ),
-    >,
+    character_query: Query<Entity, (Added<Predicted>, With<BlockMarker>)>,
 ) {
     for entity in &character_query {
-        info!(
-            ?entity,
-            "Adding physics to block"
-        );
-        commands.entity(entity).insert(BlockPhysicsBundle::default());
+        info!(?entity, "Adding physics to block");
+        commands
+            .entity(entity)
+            .insert(BlockPhysicsBundle::default())
+            .insert(GravityScale(0.0));
     }
 }

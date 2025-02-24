@@ -1,0 +1,15 @@
+[tasks.server]
+command = "cargo"
+args = ["run"]
+
+[tasks.client]
+command = "cargo"
+args = ["run", "--", "client", "-c2"]
+
+[tasks.run-all]
+run_in_background = false
+script = '''
+    cargo run > server.log 2>&1 &
+    cargo run -- client -c2 > client.log 2>&1 &
+    wait
+'''

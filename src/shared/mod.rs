@@ -25,8 +25,8 @@ pub mod components;
 pub mod systems;
 pub mod utilities;
 
-use systems::*;
 use crate::quantization::QuantizationPlugin;
+use systems::*;
 
 pub const FLOOR_WIDTH: f32 = 100.0;
 pub const FLOOR_HEIGHT: f32 = 1.0;
@@ -40,7 +40,6 @@ pub const CHARACTER_CAPSULE_HEIGHT: f32 = 0.5;
 // Define a custom schedule label
 #[derive(ScheduleLabel, Debug, Clone, PartialEq, Eq, Hash)]
 struct QuantizationSchedule;
-
 
 #[derive(Clone)]
 pub struct SharedPlugin;
@@ -56,29 +55,32 @@ impl Plugin for SharedPlugin {
         // Position and Rotation are the primary source of truth so no need to
         // sync changes from Transform to Position.
         // (we are not applying manual updates to Transform)
-        app.insert_resource(
-            avian3d::sync::SyncConfig {
-                transform_to_position: false,
-                position_to_transform: true,
-                ..default()
-            },
-        );
+        app.insert_resource(avian3d::sync::SyncConfig {
+            transform_to_position: false,
+            position_to_transform: true,
+            ..default()
+        });
         // disable sleeping
-        app.insert_resource(
-            SleepingThreshold {
-                linear: -0.01,
-                angular: -0.01,
-            },
-        );
+        app.insert_resource(SleepingThreshold {
+            linear: -0.01,
+            angular: -0.01,
+        });
         // app.insert_resource(Gravity(Vec3::ZERO));
 
         // check the component values right after 'prepare-rollback', which should reset all component
         // values to be equal to the server
-        app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
+        // app.add_systems(PreUpdate, after_physics_log.after(PredictionSet::PrepareRollback).before(PredictionSet::Rollback).run_if(is_in_rollback));
         app.add_systems(
-            FixedPostUpdate,
-            after_physics_log.after(PhysicsSet::StepSimulation),
+            PreUpdate,
+            after_physics_log
+                .after(PredictionSet::PrepareRollback)
+                .after(PredictionSet::Rollback), // .run_if(is_in_rollback),
         );
+
+        // app.add_systems(
+        //     FixedPostUpdate,
+        //     after_physics_log.after(PhysicsSet::StepSimulation),
+        // );
 
         app.add_plugins(
             PhysicsPlugins::default()
@@ -91,8 +93,8 @@ impl Plugin for SharedPlugin {
 
         // app.add_plugins(QuantizationPlugin::new(FixedPostUpdate));
 
-
         app.add_systems(FixedPostUpdate, after_physics_log_player);
         app.add_systems(PostProcessCollisions, correct_small_differences);
+        app.add_systems(FixedPreUpdate, apply_force_to_cube_system);
     }
 }

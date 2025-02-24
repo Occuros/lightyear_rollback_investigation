@@ -119,9 +119,11 @@ fn init(mut commands: Commands) {
             BlockMarker,
             Position::new(
                 Vec3::new(
-                    -1.0, 1.0, 0.0,
+                    -1.0, 3.0, 0.0,
                 ),
             ),
+            LinearVelocity(Vec3::Y * 0.5),
+            GravityScale(0.0),
             block_replicate_component.clone(),
         ),
     );
