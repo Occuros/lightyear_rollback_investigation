@@ -199,11 +199,7 @@ fn add_block_cosmetics(
     floor_query: Query<
         Entity,
         (
-            Or<(
-                Added<Predicted>,
-                Added<ReplicationTarget>,
-            )>,
-            With<BlockMarker>,
+            Added<BlockMarker>,
         ),
     >,
     mut meshes: ResMut<Assets<Mesh>>,

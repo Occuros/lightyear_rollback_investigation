@@ -57,10 +57,19 @@ impl Plugin for ExampleClientPlugin {
 pub(crate) fn handle_client_connection_system(
     mut commands: Commands,
     mut connection_event: EventReader<ConnectEvent>,
+    block_query: Query<&BlockMarker>,
+
 ) {
     for event in connection_event.read() {
         let client_id = event.client_id();
-        info!("Spawning local box");
+        info!("Spawning local box for {} at x: {}", client_id, block_query.iter().count() );
+
+        let offset = match client_id {
+            ClientId::Netcode(x) => {x}
+            ClientId::Steam(x) => {x}
+            ClientId::Local(x) => {x}
+            ClientId::Server => {0}
+        };
         // spawn a local cursor which will be replicated to other clients, but remain client-authoritative.
         commands.spawn(
             (
@@ -69,12 +78,12 @@ pub(crate) fn handle_client_connection_system(
                 BlockMarker,
                 Position::new(
                     Vec3::new(
-                        -1.0, 3.0, 0.0,
+                        -1.0 * offset as f32, 3.0, 0.0,
                     ),
                 ),
-                // LinearVelocity(Vec3::Y * 0.5),
+                LinearVelocity(Vec3::Y * 0.5),
                 GravityScale(0.0),
-                lightyear::prelude::server::Replicate::default(),
+                Replicate::default(),
             ),
         );
     }
@@ -170,9 +179,9 @@ fn handle_new_floor(
 fn handle_new_block(
     connection: Res<ClientConnection>,
     mut commands: Commands,
-    character_query: Query<Entity, (Added<Predicted>, With<BlockMarker>)>,
+    block_query: Query<Entity, (Added<BlockMarker>)>,
 ) {
-    for entity in &character_query {
+    for entity in &block_query {
         info!(?entity, "Adding physics to block");
         commands
             .entity(entity)

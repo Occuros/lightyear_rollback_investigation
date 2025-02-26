@@ -84,22 +84,22 @@ impl Plugin for ProtocolPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(LeafwingInputPlugin::<CharacterAction>::default());
 
-        app.register_component::<ColorComponent>(ChannelDirection::ServerToClient)
+        app.register_component::<ColorComponent>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<Name>(ChannelDirection::ServerToClient)
+        app.register_component::<Name>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<CharacterMarker>(ChannelDirection::ServerToClient)
+        app.register_component::<CharacterMarker>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<FloorMarker>(ChannelDirection::ServerToClient)
+        app.register_component::<FloorMarker>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
         app.register_component::<BlockMarker>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
-        app.register_component::<Bullet>(ChannelDirection::ServerToClient)
+        app.register_component::<Bullet>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Once);
 
         // Fully replicated, but not visual, so no need for lerp/corrections:
@@ -115,8 +115,8 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<ExternalImpulse>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<Transform>(ChannelDirection::Bidirectional)
-            .add_prediction(ComponentSyncMode::Full);
+        app.register_component::<Transform>(ChannelDirection::Bidirectional);
+            // .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<ComputedMass>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full);
@@ -124,7 +124,7 @@ impl Plugin for ProtocolPlugin {
         // app.register_component::<Weapon>(ChannelDirection::ServerToClient)
         //     .add_prediction(ComponentSyncMode::Full);
 
-        app.register_component::<Player>(ChannelDirection::ServerToClient)
+        app.register_component::<Player>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Simple);
 
         // Position and Rotation have a `correction_fn` set, which is used to smear rollback errors
@@ -134,8 +134,8 @@ impl Plugin for ProtocolPlugin {
         // out rendering between fixedupdate ticks.
         app.register_component::<Position>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation_fn(position::lerp)
-            .add_correction_fn(position::lerp);
+            .add_interpolation_fn(position::lerp);
+            // .add_correction_fn(position::lerp);
             // .add_correction_fn(
             //     |start: &Position, other: &Position, t: f32| {
             //         // info!("is correction applied");
@@ -154,8 +154,8 @@ impl Plugin for ProtocolPlugin {
 
         app.register_component::<Rotation>(ChannelDirection::Bidirectional)
             .add_prediction(ComponentSyncMode::Full)
-            .add_interpolation_fn(rotation::lerp)
-            .add_correction_fn(rotation::lerp);
+            .add_interpolation_fn(rotation::lerp);
+            // .add_correction_fn(rotation::lerp);
 
         // do not replicate Transform but make sure to register an interpolation function
         // for it so that we can do visual interpolation

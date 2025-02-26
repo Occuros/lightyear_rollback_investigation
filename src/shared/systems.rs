@@ -299,7 +299,7 @@ pub fn correct_small_differences(mut collisions: ResMut<Collisions>) {
 }
 
 pub fn apply_force_to_cube_system(
-    mut block_query: Query<(&Transform, &mut LinearVelocity), (With<HasAuthority>, With<BlockMarker>, Without<Confirmed>)>,
+    mut block_query: Query<(&Transform, &mut LinearVelocity), (With<HasAuthority>, With<BlockMarker>)>,
 ) {
     for (transform, mut velocity) in block_query.iter_mut() {
         if transform.translation.y > 5.0 {
