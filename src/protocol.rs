@@ -121,8 +121,8 @@ impl Plugin for ProtocolPlugin {
         app.register_component::<ComputedMass>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full);
 
-        // app.register_component::<Weapon>(ChannelDirection::ServerToClient)
-        //     .add_prediction(ComponentSyncMode::Full);
+        app.register_component::<Weapon>(ChannelDirection::ServerToClient)
+            .add_prediction(ComponentSyncMode::Full);
 
         app.register_component::<Player>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Simple);
@@ -136,21 +136,7 @@ impl Plugin for ProtocolPlugin {
             .add_prediction(ComponentSyncMode::Full)
             .add_interpolation_fn(position::lerp)
             .add_correction_fn(position::lerp);
-            // .add_correction_fn(
-            //     |start: &Position, other: &Position, t: f32| {
-            //         // info!("is correction applied");
-            //         // if (start.0 - other.0).length() < 0.01 {
-            //         //     start.clone()
-            //         // } else {
-            //         //     Position::new(
-            //         //         start.lerp(
-            //         //             other.0, t,
-            //         //         ),
-            //         //     )
-            //         // }
-            //         other.clone()
-            //     },
-            // );
+
 
         app.register_component::<Rotation>(ChannelDirection::ServerToClient)
             .add_prediction(ComponentSyncMode::Full)

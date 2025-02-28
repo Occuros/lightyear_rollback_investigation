@@ -17,7 +17,7 @@ use crate::common::shared::FIXED_TIMESTEP_HZ;
 use lightyear::prelude::client::*;
 use lightyear::prelude::TickManager;
 use lightyear::prelude::*;
-
+use lightyear::prelude::client::InterpolationSet::VisualInterpolation;
 use crate::protocol::*;
 use crate::shared::*;
 
@@ -52,14 +52,16 @@ pub fn player_firing(
         return;
     }
 
+    let client_server = if identity.is_server() {"server"} else {"client"};
     let current_tick = tick_manager.tick();
 
     for (player, mut weapon, player_transform, player_velocity, player_action, is_local) in player_query.iter_mut() {
         if !player_action.just_pressed(&CharacterAction::Shoot) {
             continue;
         }
-
         let fired_since = current_tick - weapon.last_fire_tick;
+
+        info!("we are trying to fire on {}, last: {}", client_server, fired_since);
 
         if fired_since.abs() <= weapon.cooldown as i16 {
             // cooldown period - can't fire.
@@ -84,20 +86,18 @@ pub fn player_firing(
         let bullet_origin = player_transform.translation + -player_transform.up() * 0.1 + offset;
 
         let prespawn = PreSpawnedPlayerObject::default_with_salt(player.client_id.to_bits());
+        let layers = CollisionLayers::new(0b00010, 0b0111);
 
         let bullet_size = 0.1;
         let bullet_entity = commands
             .spawn((
-                // Name::new("Bullet"),
+                Name::new("Bullet"),
                 Bullet { radius: bullet_size },
                 Position::new(bullet_origin),
-                // LinearVelocity(
-                //     (-player_transform.forward().as_vec3() + player_transform.up().as_vec3()).normalize() * 10.0,
-                // ),
-                LinearVelocity((-player_transform.forward().as_vec3()).normalize() * 10.0),
+                LinearVelocity(
+                    (-player_transform.forward().as_vec3() + player_transform.up().as_vec3()).normalize() * 10.0,
+                ),
                 Collider::sphere(bullet_size),
-                // GravityScale(0.0),
-                // Replicate::default(),
                 prespawn,
             ))
             .id();

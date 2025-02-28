@@ -71,21 +71,21 @@ fn handle_character_actions(
 fn init(mut commands: Commands) {
     commands.start_server();
 
-    // commands.spawn(
-    //     (
-    //         Name::new("Floor"),
-    //         FloorPhysicsBundle::default(),
-    //         FloorMarker,
-    //         Position::new(Vec3::ZERO),
-    //         // Floors don't need to be predicted since they will never move.
-    //         // We put it in the same replication group to avoid having the players be replicated before the floor
-    //         // and falling infinitely
-    //         Replicate {
-    //             group: REPLICATION_GROUP,
-    //             ..default()
-    //         },
-    //     ),
-    // );
+    commands.spawn(
+        (
+            Name::new("Floor"),
+            FloorPhysicsBundle::default(),
+            FloorMarker,
+            Position::new(Vec3::ZERO),
+            // Floors don't need to be predicted since they will never move.
+            // We put it in the same replication group to avoid having the players be replicated before the floor
+            // and falling infinitely
+            Replicate {
+                group: REPLICATION_GROUP,
+                ..default()
+            },
+        ),
+    );
 
     // Blocks need to be predicted because their position, rotation, velocity
     // may change.
@@ -128,19 +128,19 @@ fn init(mut commands: Commands) {
         ),
     );
 
-    // commands.spawn(
-    //     (
-    //         Name::new("Block"),
-    //         BlockPhysicsBundle::default(),
-    //         BlockMarker,
-    //         Position::new(
-    //             Vec3::new(
-    //                 -1.0, 20.0, 0.0,
-    //             ),
-    //         ),
-    //         block_replicate_component.clone(),
-    //     ),
-    // );
+    commands.spawn(
+        (
+            Name::new("Block"),
+            BlockPhysicsBundle::default(),
+            BlockMarker,
+            Position::new(
+                Vec3::new(
+                    -1.0, 20.0, 0.0,
+                ),
+            ),
+            block_replicate_component.clone(),
+        ),
+    );
 }
 
 /// When we receive the input of a client, broadcast it to other clients
@@ -214,32 +214,32 @@ pub(crate) fn handle_connections(
 
         // Spawn the character with ActionState. The client will add their own
         // InputMap.
-        // let character = commands
-        //     .spawn(
-        //         (
-        //             Name::new("Character"),
-        //             Player {
-        //                 client_id,
-        //             },
-        //             ActionState::<CharacterAction>::default(),
-        //             Position(
-        //                 Vec3::new(
-        //                     x, 3.0, z,
-        //                 ),
-        //             ),
-        //             replicate,
-        //             CharacterPhysicsBundle::default(),
-        //             ColorComponent(color.into()),
-        //             CharacterMarker,
-        //             Weapon {
-        //                 cooldown: (FIXED_TIMESTEP_HZ / 5.0) as u16,
-        //                 last_fire_tick: Tick(0),
-        //             },
-        //         ),
-        //     )
-        //     .id();
+        let character = commands
+            .spawn(
+                (
+                    Name::new("Character"),
+                    Player {
+                        client_id,
+                    },
+                    ActionState::<CharacterAction>::default(),
+                    Position(
+                        Vec3::new(
+                            x, 3.0, z,
+                        ),
+                    ),
+                    replicate,
+                    CharacterPhysicsBundle::default(),
+                    ColorComponent(color.into()),
+                    CharacterMarker,
+                    Weapon {
+                        cooldown: (FIXED_TIMESTEP_HZ / 5.0) as u16,
+                        last_fire_tick: Tick(0),
+                    },
+                ),
+            )
+            .id();
 
         // info!("Created entity {character:?} for client {client_id:?}");
-        // num_characters += 1;
+        num_characters += 1;
     }
 }

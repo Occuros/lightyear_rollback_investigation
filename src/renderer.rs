@@ -28,7 +28,7 @@ impl Plugin for ExampleRendererPlugin {
                 add_character_cosmetics,
                 add_floor_cosmetics,
                 add_block_cosmetics,
-                // add_bullet_cosmetics,
+                add_bullet_cosmetics,
                 draw_characters,
                 print_corrections,
             ),
@@ -37,6 +37,7 @@ impl Plugin for ExampleRendererPlugin {
         // Set up visual interp plugins for Transform. Transform is updated in FixedUpdate
         // by the physics plugin so we make sure that in PostUpdate we interpolate it
         app.add_plugins(VisualInterpolationPlugin::<Transform>::default());
+        app.add_plugins(VisualInterpolationPlugin::<Position>::default());
 
         // Observers that add VisualInterpolationStatus components to entities
         // which receive a Position and are predicted
@@ -287,6 +288,7 @@ fn add_bullet_cosmetics(
         commands.entity(entity).insert(
             (
                 Mesh3d(meshes.add(Sphere::new(bullet.radius))),
+                VisualInterpolateStatus::<Transform>::default(),
                 MeshMaterial3d(
                     materials.add(
                         Color::srgb(
