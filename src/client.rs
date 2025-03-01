@@ -143,7 +143,7 @@ fn handle_new_block(
         info!(?entity, "Adding physics to block");
         commands
             .entity(entity)
-            .insert(BlockPhysicsBundle::default())
-            .insert(GravityScale(0.0));
+            .insert(BlockPhysicsBundle::default());
+            // .insert(GravityScale(0.0));
     }
 }

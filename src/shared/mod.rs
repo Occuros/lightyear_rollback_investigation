@@ -66,7 +66,7 @@ impl Plugin for SharedPlugin {
         );
 
 
-        app.add_systems(FixedUpdate, apply_force_to_cube_system);
+        // app.add_systems(FixedUpdate, apply_force_to_cube_system);
 
         app.add_plugins(
             PhysicsPlugins::default()
@@ -77,6 +77,5 @@ impl Plugin for SharedPlugin {
         );
 
         app.add_systems(PostProcessCollisions, correct_small_differences);
-        app.add_systems(FixedPreUpdate, apply_force_to_cube_system);
     }
 }

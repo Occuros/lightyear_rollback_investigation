@@ -112,35 +112,36 @@ fn init(mut commands: Commands) {
     //         block_replicate_component.clone(),
     //     ),
     // );
-    commands.spawn(
-        (
-            Name::new("Block"),
-            BlockPhysicsBundle::default(),
-            BlockMarker,
-            Position::new(
-                Vec3::new(
-                    -1.0, 3.0, 0.0,
-                ),
-            ),
-            LinearVelocity(Vec3::Y * 0.5),
-            GravityScale(0.0),
-            block_replicate_component.clone(),
-        ),
-    );
 
-    commands.spawn(
-        (
-            Name::new("Block"),
-            BlockPhysicsBundle::default(),
-            BlockMarker,
-            Position::new(
-                Vec3::new(
-                    -1.0, 20.0, 0.0,
-                ),
-            ),
-            block_replicate_component.clone(),
-        ),
-    );
+    // commands.spawn(
+    //     (
+    //         Name::new("Block"),
+    //         BlockPhysicsBundle::default(),
+    //         BlockMarker,
+    //         Position::new(
+    //             Vec3::new(
+    //                 -1.0, 3.0, 0.0,
+    //             ),
+    //         ),
+    //         // LinearVelocity(Vec3::Y * 0.5),
+    //         // GravityScale(0.0),
+    //         block_replicate_component.clone(),
+    //     ),
+    // );
+    //
+    // commands.spawn(
+    //     (
+    //         Name::new("Block"),
+    //         BlockPhysicsBundle::default(),
+    //         BlockMarker,
+    //         Position::new(
+    //             Vec3::new(
+    //                 -1.0, 20.0, 0.0,
+    //             ),
+    //         ),
+    //         block_replicate_component.clone(),
+    //     ),
+    // );
 }
 
 /// When we receive the input of a client, broadcast it to other clients

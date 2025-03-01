@@ -108,7 +108,7 @@ pub(crate) fn get_settings() -> MySettings {
                 compression: CompressionConfig::None,
             },
         },
-        input_delay_ticks: 12,
-        correction_ticks_factor: 0.0,
+        input_delay_ticks: 2,
+        correction_ticks_factor: 0.1,
     }
 }
